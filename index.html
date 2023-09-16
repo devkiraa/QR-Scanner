@@ -99,7 +99,7 @@
                    headers: {
                        'Content-Type': 'application/json',
                    },
-                   body: JSON.stringify({ code: scannedDataElement.textContent }), // Send the scanned data
+                   body: JSON.stringify({ code: scannedDataElement.textContent }), // Send the scanned data as 'code'
                })
                .then(response => response.text())
                .then(result => {

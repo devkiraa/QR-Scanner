@@ -13,6 +13,7 @@
    <!-- Include the jsQR library just before the closing </body> tag -->
    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/dist/jsQR.js"></script>
 
+   <!-- Your custom JavaScript code -->
    <script>
        const video = document.getElementById('qr-video');
        const scannedDataElement = document.getElementById('scanned-data');
@@ -44,13 +45,35 @@
                    const code = jsQR(imageData.data, imageData.width, imageData.height);
 
                    if (code) {
-                       scannedDataElement.textContent = code.data;
+                       const scannedData = code.data;
+                       scannedDataElement.textContent = scannedData;
+                       
+                       // Send scanned data to Google Sheets
+                       sendQRDataToGoogleSheets(scannedData);
                    }
                }
                requestAnimationFrame(checkForQRCode);
            }
 
            checkForQRCode();
+       }
+
+       // Function to send scanned data to Google Sheets
+       function sendQRDataToGoogleSheets(data) {
+           fetch('https://script.google.com/macros/s/AKfycbwZKaEooLR5m7WM_97UCQBJ60ExulEYsRmEVMDn4O1XXDUGHxaDjTDX40qqhspJb0i9Qg/exec', { // Replace with your web app URL
+               method: 'POST',
+               headers: {
+                   'Content-Type': 'application/json',
+               },
+               body: JSON.stringify({ qrData: data }),
+           })
+           .then(response => response.text())
+           .then(result => {
+               console.log(result);
+           })
+           .catch(error => {
+               console.error('Error sending QR data:', error);
+           });
        }
    </script>
 </body>

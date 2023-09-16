@@ -10,6 +10,7 @@
    <video id="qr-video" width="100%" height="auto"></video>
    <p>Scanned Data: <span id="scanned-data"></span></p>
    <button id="capture-button">Capture</button>
+   <button id="send-button" style="display: none;">Send to Sheets</button>
    <canvas id="captured-image" style="display: none;"></canvas>
 
    <!-- Include the jsQR library just before the closing </body> tag -->
@@ -20,8 +21,10 @@
        const video = document.getElementById('qr-video');
        const scannedDataElement = document.getElementById('scanned-data');
        const captureButton = document.getElementById('capture-button');
+       const sendButton = document.getElementById('send-button');
        const capturedImageCanvas = document.getElementById('captured-image');
        const capturedImageContext = capturedImageCanvas.getContext('2d');
+       let isCaptured = false;
 
        // Use getUserMedia to access the webcam
        navigator.mediaDevices
@@ -29,89 +32,76 @@
            .then(function (stream) {
                video.srcObject = stream;
                video.play();
-               scanQRCode();
            })
            .catch(function (error) {
                console.error('Error accessing the webcam:', error);
            });
 
        captureButton.addEventListener('click', captureImage);
-
-       function scanQRCode() {
-           const canvas = document.createElement('canvas');
-           const context = canvas.getContext('2d');
-
-           // Continuously scan for QR codes
-           function checkForQRCode() {
-               if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                   canvas.width = video.videoWidth;
-                   canvas.height = video.videoHeight;
-                   context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                   const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                   if (code) {
-                       const scannedData = code.data;
-                       scannedDataElement.textContent = scannedData;
-                       
-                       // Send scanned data to Google Sheets
-                       sendQRDataToGoogleSheets(scannedData);
-                   }
-               }
-               requestAnimationFrame(checkForQRCode);
-           }
-
-           checkForQRCode();
-       }
+       sendButton.addEventListener('click', sendImageToSheets);
 
        function captureImage() {
-           capturedImageCanvas.width = video.videoWidth;
-           capturedImageCanvas.height = video.videoHeight;
-           capturedImageContext.drawImage(video, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
+           if (!isCaptured) {
+               isCaptured = true;
+               captureButton.textContent = 'Recapture'; // Change button text
+               sendButton.style.display = 'block'; // Show the "Send to Sheets" button
 
-           // Convert the captured image to a data URL
-           const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
+               capturedImageCanvas.width = video.videoWidth;
+               capturedImageCanvas.height = video.videoHeight;
+               capturedImageContext.drawImage(video, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
 
-           // Decode QR code from the captured image
-           const image = new Image();
-           image.src = imageDataURL;
+               // Convert the captured image to a data URL
+               const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
 
-           image.onload = function () {
-               const qrCode = jsQR(
-                   capturedImageContext.getImageData(0, 0, capturedImageCanvas.width, capturedImageCanvas.height).data,
-                   capturedImageCanvas.width,
-                   capturedImageCanvas.height
-               );
+               // Decode QR code from the captured image
+               const image = new Image();
+               image.src = imageDataURL;
 
-               if (qrCode) {
-                   const scannedData = qrCode.data;
-                   scannedDataElement.textContent = scannedData;
-                   
-                   // Send scanned data to Google Sheets
-                   sendQRDataToGoogleSheets(scannedData);
-               } else {
-                   alert('No QR code found in the captured image.');
-               }
-           };
+               image.onload = function () {
+                   const qrCode = jsQR(
+                       capturedImageContext.getImageData(0, 0, capturedImageCanvas.width, capturedImageCanvas.height).data,
+                       capturedImageCanvas.width,
+                       capturedImageCanvas.height
+                   );
+
+                   if (qrCode) {
+                       const scannedData = qrCode.data;
+                       scannedDataElement.textContent = scannedData;
+                   } else {
+                       alert('No QR code found in the captured image.');
+                   }
+               };
+           } else {
+               // If already captured, allow recapturing
+               isCaptured = false;
+               captureButton.textContent = 'Capture'; // Reset button text
+               sendButton.style.display = 'none'; // Hide the "Send to Sheets" button
+               scannedDataElement.textContent = ''; // Clear scanned data
+           }
        }
 
-       // Function to send scanned data to Google Sheets
-       function sendQRDataToGoogleSheets(data) {
-           fetch('https://script.google.com/macros/s/AKfycbw0DyxfWHJTZe2Fsjencz1TqHz7Vg6gJxOi0MXCiRaHW1P2ATL1NDIsmd14ZWXQLF2-ow/exec', { // Replace with your web app URL
-               method: 'POST',
-               headers: {
-                   'Content-Type': 'application/json',
-               },
-               body: JSON.stringify({ qrData: data }),
-           })
-           .then(response => response.text())
-           .then(result => {
-               console.log(result);
-           })
-           .catch(error => {
-               console.error('Error sending QR data:', error);
-           });
+       function sendImageToSheets() {
+           if (isCaptured) {
+               const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
+
+               // Send the image data to Google Sheets
+               fetch('https://script.google.com/macros/s/AKfycbw0DyxfWHJTZe2Fsjencz1TqHz7Vg6gJxOi0MXCiRaHW1P2ATL1NDIsmd14ZWXQLF2-ow/exec', { // Replace with your web app URL
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify({ qrImageData: imageDataURL }),
+               })
+               .then(response => response.text())
+               .then(result => {
+                   console.log(result);
+               })
+               .catch(error => {
+                   console.error('Error sending image data to Sheets:', error);
+               });
+           } else {
+               alert('Please capture an image first.');
+           }
        }
    </script>
 </body>

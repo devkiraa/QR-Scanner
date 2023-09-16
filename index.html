@@ -44,10 +44,14 @@
            if (!isCaptured) {
                isCaptured = true;
                captureButton.textContent = 'Recapture'; // Change button text
-               sendButton.style.display = 'block'; // Show the "Send to Sheets" button
+               sendButton.style.display = 'none'; // Hide the "Send to Sheets" button
 
                capturedImageCanvas.width = video.videoWidth;
                capturedImageCanvas.height = video.videoHeight;
+               capturedImageContext.drawImage(video, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
+
+               // Convert the captured image to grayscale (improves QR code detection)
+               capturedImageContext.filter = 'grayscale(100%)';
                capturedImageContext.drawImage(video, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
 
                // Convert the captured image to a data URL
@@ -67,6 +71,7 @@
                    if (qrCode) {
                        const scannedData = qrCode.data;
                        scannedDataElement.textContent = scannedData;
+                       sendButton.style.display = 'block'; // Show the "Send to Sheets" button
                    } else {
                        alert('No QR code found in the captured image.');
                    }

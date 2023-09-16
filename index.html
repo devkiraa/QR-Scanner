@@ -11,6 +11,7 @@
    <p>Scanned Data: <span id="scanned-data"></span></p>
    <button id="capture-button">Capture</button>
    <button id="send-button" style="display: none;">Send to Sheets</button>
+   <p id="send-status"></p>
    <canvas id="captured-image" style="display: none;"></canvas>
 
    <!-- Include the jsQR library just before the closing </body> tag -->
@@ -22,6 +23,7 @@
        const scannedDataElement = document.getElementById('scanned-data');
        const captureButton = document.getElementById('capture-button');
        const sendButton = document.getElementById('send-button');
+       const sendStatus = document.getElementById('send-status');
        const capturedImageCanvas = document.getElementById('captured-image');
        const capturedImageContext = capturedImageCanvas.getContext('2d');
        let isCaptured = false;
@@ -45,6 +47,7 @@
                isCaptured = true;
                captureButton.textContent = 'Recapture'; // Change button text
                sendButton.style.display = 'none'; // Hide the "Send to Sheets" button
+               sendStatus.textContent = ''; // Clear send status
 
                capturedImageCanvas.width = video.videoWidth;
                capturedImageCanvas.height = video.videoHeight;
@@ -82,6 +85,7 @@
                captureButton.textContent = 'Capture'; // Reset button text
                sendButton.style.display = 'none'; // Hide the "Send to Sheets" button
                scannedDataElement.textContent = ''; // Clear scanned data
+               sendStatus.textContent = ''; // Clear send status
            }
        }
 
@@ -100,9 +104,11 @@
                .then(response => response.text())
                .then(result => {
                    console.log(result);
+                   sendStatus.textContent = 'Data sent to Sheets successfully.';
                })
                .catch(error => {
                    console.error('Error sending image data to Sheets:', error);
+                   sendStatus.textContent = 'Error sending data to Sheets.';
                });
            } else {
                alert('Please capture an image first.');

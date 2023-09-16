@@ -9,6 +9,8 @@
    <h1>QR Code Scanner</h1>
    <video id="qr-video" width="100%" height="auto"></video>
    <p>Scanned Data: <span id="scanned-data"></span></p>
+   <button id="capture-button">Capture</button>
+   <canvas id="captured-image" style="display: none;"></canvas>
 
    <!-- Include the jsQR library just before the closing </body> tag -->
    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/dist/jsQR.js"></script>
@@ -17,6 +19,9 @@
    <script>
        const video = document.getElementById('qr-video');
        const scannedDataElement = document.getElementById('scanned-data');
+       const captureButton = document.getElementById('capture-button');
+       const capturedImageCanvas = document.getElementById('captured-image');
+       const capturedImageContext = capturedImageCanvas.getContext('2d');
 
        // Use getUserMedia to access the webcam
        navigator.mediaDevices
@@ -29,6 +34,8 @@
            .catch(function (error) {
                console.error('Error accessing the webcam:', error);
            });
+
+       captureButton.addEventListener('click', captureImage);
 
        function scanQRCode() {
            const canvas = document.createElement('canvas');
@@ -56,6 +63,37 @@
            }
 
            checkForQRCode();
+       }
+
+       function captureImage() {
+           capturedImageCanvas.width = video.videoWidth;
+           capturedImageCanvas.height = video.videoHeight;
+           capturedImageContext.drawImage(video, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
+
+           // Convert the captured image to a data URL
+           const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
+
+           // Decode QR code from the captured image
+           const image = new Image();
+           image.src = imageDataURL;
+
+           image.onload = function () {
+               const qrCode = jsQR(
+                   capturedImageContext.getImageData(0, 0, capturedImageCanvas.width, capturedImageCanvas.height).data,
+                   capturedImageCanvas.width,
+                   capturedImageCanvas.height
+               );
+
+               if (qrCode) {
+                   const scannedData = qrCode.data;
+                   scannedDataElement.textContent = scannedData;
+                   
+                   // Send scanned data to Google Sheets
+                   sendQRDataToGoogleSheets(scannedData);
+               } else {
+                   alert('No QR code found in the captured image.');
+               }
+           };
        }
 
        // Function to send scanned data to Google Sheets

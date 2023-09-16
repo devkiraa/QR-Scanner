@@ -94,13 +94,14 @@
                const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
 
                // Send the image data to Google Sheets
-               fetch('https://script.google.com/macros/s/AKfycbxljDf4QqxUmjrzIEL2B8fxaTHK2N_PQdS-NY3FN-tn3XG-WHgyO-Qb5U4kEOhJHrAvsQ/exec', { // Replace with your web app URL
-                   method: 'POST',
-                   headers: {
-                       'Content-Type': 'application/json',
-                   },
-                   body: JSON.stringify({ qrImageData: imageDataURL }),
-               })
+               fetch('https://script.google.com/macros/s/AKfycbxljDf4QqxUmjrzIEL2B8fxaTHK2N_PQdS-NY3FN-tn3XG-WHgyO-Qb5U4kEOhJHrAvsQ/exec', { // Replace this URL with your new web app URL
+   method: 'POST',
+   headers: {
+       'Content-Type': 'application/json',
+   },
+   body: JSON.stringify({ qrImageData: imageDataURL }),
+})
+
                .then(response => response.text())
                .then(result => {
                    console.log(result);

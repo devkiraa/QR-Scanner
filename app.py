@@ -8,8 +8,8 @@ credentials = ServiceAccountCredentials.from_json_keyfile_name('your-service-acc
 gc = gspread.authorize(credentials)
 
 # Open the Google Sheet by its URL
-sheet_url = 'https://docs.google.com/spreadsheets/d/1k1jeAG_hsUA8sni6yu7fYM_fXaPDpRrm4ynWElqEn1A/edit?usp=sharing'  # Replace with your Google Sheet URL
-worksheet = gc.open_by_url(sheet_url).sheet1  # Replace 'sheet1' with your actual sheet name
+sheet_url = 'https://docs.google.com/spreadsheets/d/1k1jeAG_hsUA8sni6yu7fYM_fXaPDpRrm4ynWElqEn1A/edit#gid=0'  # Replace with your Google Sheet URL
+worksheet = gc.open_by_url(sheet_url).Sheet1  # Replace 'sheet1' with your actual sheet name
 
 # Open the webcam for QR code scanning
 cap = cv2.VideoCapture(0)

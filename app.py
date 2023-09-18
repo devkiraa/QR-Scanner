@@ -8,7 +8,7 @@ credentials = ServiceAccountCredentials.from_json_keyfile_name('your-service-acc
 gc = gspread.authorize(credentials)
 
 # Open the Google Sheet by its URL and specify the worksheet by name
-sheet_url = 'https://docs.google.com/spreadsheets/d/1k1jeAG_hsUA8sni6yu7fYM_fXaPDpRrm4ynWElqEn1A/edit?usp=sharing'  # Replace with your Google Sheet URL
+sheet_url = 'https://docs.google.com/spreadsheets/d/18qa612LxTadmS6QgUhGPkIEkUgqqKYxSFrKgwlPVVd8/edit?usp=sharing'  # Replace with your Google Sheet URL
 worksheet_name = 'Sheet1'  # Replace with your actual sheet name
 worksheet = gc.open_by_url(sheet_url).worksheet(worksheet_name)
 
@@ -22,7 +22,7 @@ while True:
     detector = cv2.QRCodeDetector()
     
     # Detect QR codes in the frame
-    data, vertices = detector.detectAndDecode(frame)
+    data, _ = detector.detectAndDecode(frame)  # Ignore the 'vertices' variable
     
     if data:
         # Data is the QR code content

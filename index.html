@@ -9,11 +9,8 @@
    <h1>QR Code Scanner</h1>
    <video id="qr-video" width="100%" height="auto"></video>
    <p>Scanned Data: <span id="scanned-data"></span></p>
-   <form id="qr-form" method="POST" action="/scan" enctype="multipart/form-data">
-       <input type="file" id="qr-image" accept="image/*" capture="environment">
-       <button id="capture-button">Capture</button>
-       <button id="send-button" style="display: none;">Send to Sheets</button>
-   </form>
+   <button id="capture-button">Capture</button>
+   <button id="send-button" style="display: none;">Send to Sheets</button>
    <p id="send-status"></p>
    <canvas id="captured-image" style="display: none;"></canvas>
 
@@ -29,9 +26,6 @@
        const sendStatus = document.getElementById('send-status');
        const capturedImageCanvas = document.getElementById('captured-image');
        const capturedImageContext = capturedImageCanvas.getContext('2d');
-       const qrForm = document.getElementById('qr-form');
-       const qrImageInput = document.getElementById('qr-image');
-
        let isCaptured = false;
 
        // Use getUserMedia to access the webcam
@@ -66,10 +60,6 @@
                // Convert the captured image to a data URL
                const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
 
-               // Display the captured image
-               capturedImageCanvas.style.display = 'block';
-               qrImageInput.style.display = 'none';
-
                // Decode QR code from the captured image
                const image = new Image();
                image.src = imageDataURL;
@@ -96,10 +86,6 @@
                sendButton.style.display = 'none'; // Hide the "Send to Sheets" button
                scannedDataElement.textContent = ''; // Clear scanned data
                sendStatus.textContent = ''; // Clear send status
-
-               // Hide the captured image and show the QR image input
-               capturedImageCanvas.style.display = 'none';
-               qrImageInput.style.display = 'block';
            }
        }
 
@@ -108,14 +94,14 @@
                const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
 
                // Send the image data to the Python server for further processing and sending to Sheets
-               fetch('/scan', {
+               fetch('/send-to-sheets', {
                    method: 'POST',
                    headers: {
                        'Content-Type': 'application/json',
                    },
                    body: JSON.stringify({ qrImageData: imageDataURL }),
                })
-               .then(response => response.json())
+               .then(response => response.text())
                .then(result => {
                    console.log(result);
                    sendStatus.textContent = 'Data sent to Sheets successfully.';

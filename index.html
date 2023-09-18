@@ -10,9 +10,8 @@
    <video id="qr-video" width="100%" height="auto"></video>
    <p>Scanned Data: <span id="scanned-data"></span></p>
    <button id="capture-button">Capture</button>
-   <button id="send-button" style="display: none;">Send to Sheets</button>
+   <button id="send-button" style="display: none;">Send to Python Backend</button>
    <p id="send-status"></p>
-   <canvas id="captured-image" style="display: none;"></canvas>
 
    <!-- Include the jsQR library just before the closing </body> tag -->
    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/dist/jsQR.js"></script>
@@ -24,8 +23,6 @@
        const captureButton = document.getElementById('capture-button');
        const sendButton = document.getElementById('send-button');
        const sendStatus = document.getElementById('send-status');
-       const capturedImageCanvas = document.getElementById('captured-image');
-       const capturedImageContext = capturedImageCanvas.getContext('2d');
        let isCaptured = false;
 
        // Use getUserMedia to access the webcam
@@ -40,75 +37,53 @@
            });
 
        captureButton.addEventListener('click', captureImage);
-       sendButton.addEventListener('click', sendImageToSheets);
+       sendButton.addEventListener('click', sendImageToPythonBackend);
 
        function captureImage() {
            if (!isCaptured) {
                isCaptured = true;
                captureButton.textContent = 'Recapture'; // Change button text
-               sendButton.style.display = 'none'; // Hide the "Send to Sheets" button
+               sendButton.style.display = 'none'; // Hide the "Send to Python Backend" button
                sendStatus.textContent = ''; // Clear send status
 
-               capturedImageCanvas.width = video.videoWidth;
-               capturedImageCanvas.height = video.videoHeight;
-               capturedImageContext.drawImage(video, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
+               // Your QR code scanning logic using jsQR library goes here
+               // Once you have the scanned QR code data, set it to scannedDataElement
 
-               // Convert the captured image to grayscale (improves QR code detection)
-               capturedImageContext.filter = 'grayscale(100%)';
-               capturedImageContext.drawImage(video, 0, 0, capturedImageCanvas.width, capturedImageCanvas.height);
-
-               // Convert the captured image to a data URL
-               const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
-
-               // Decode QR code from the captured image
-               const image = new Image();
-               image.src = imageDataURL;
-
-               image.onload = function () {
-                   const qrCode = jsQR(
-                       capturedImageContext.getImageData(0, 0, capturedImageCanvas.width, capturedImageCanvas.height).data,
-                       capturedImageCanvas.width,
-                       capturedImageCanvas.height
-                   );
-
-                   if (qrCode) {
-                       const scannedData = qrCode.data;
-                       scannedDataElement.textContent = scannedData;
-                       sendButton.style.display = 'block'; // Show the "Send to Sheets" button
-                   } else {
-                       alert('No QR code found in the captured image.');
-                   }
-               };
+               // Example:
+               const scannedData = 'QR Code Data'; // Replace with the actual scanned data
+               scannedDataElement.textContent = scannedData;
+               sendButton.style.display = 'block'; // Show the "Send to Python Backend" button
            } else {
                // If already captured, allow recapturing
                isCaptured = false;
                captureButton.textContent = 'Capture'; // Reset button text
-               sendButton.style.display = 'none'; // Hide the "Send to Sheets" button
+               sendButton.style.display = 'none'; // Hide the "Send to Python Backend" button
                scannedDataElement.textContent = ''; // Clear scanned data
                sendStatus.textContent = ''; // Clear send status
            }
        }
 
-       function sendImageToSheets() {
+       function sendImageToPythonBackend() {
            if (isCaptured) {
-               const imageDataURL = capturedImageCanvas.toDataURL('image/jpeg');
+               // Get the scanned data
+               const scannedData = scannedDataElement.textContent;
 
-               // Send the image data to Google Sheets
-               fetch('https://script.google.com/macros/s/AKfycbzD1TwxW9gzeYa38pHvbms56ZgKbzhlupIq6jefQ7h55lZ7DstR4Q8NCCa9_8xQ-LepQQ/exec', { // Replace this URL with your new web app URL
+               // Send the scanned data to the Python backend using fetch
+               fetch('/your-python-endpoint', {
                    method: 'POST',
                    headers: {
                        'Content-Type': 'application/json',
                    },
-                   body: JSON.stringify({ code: scannedDataElement.textContent }), // Send the scanned data as 'code'
+                   body: JSON.stringify({ qrData: scannedData }),
                })
                .then(response => response.text())
                .then(result => {
                    console.log(result);
-                   sendStatus.textContent = 'Data sent to Sheets successfully.';
+                   sendStatus.textContent = 'Data sent to Python Backend successfully.';
                })
                .catch(error => {
-                   console.error('Error sending image data to Sheets:', error);
-                   sendStatus.textContent = 'Error sending data to Sheets.';
+                   console.error('Error sending data to Python Backend:', error);
+                   sendStatus.textContent = 'Error sending data to Python Backend.';
                });
            } else {
                alert('Please capture an image first.');

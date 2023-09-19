@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+</head>
+<body>
+    <h1>QR Code Scanner</h1>
+    <video id="qr-video" width="100%" height="auto"></video>
+    <p>Scanned Data: <span id="scanned-data"></span></p>
+    <button id="capture-button">Capture</button>
+    <button id="send-button" style="display: none;">Send to Sheets</button>
+    <p id="send-status"></p>
+    <canvas id="captured-image" style="display: none;"></canvas>
+
+    <!-- Include the jsQR library just before the closing </body> tag -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/dist/jsQR.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
